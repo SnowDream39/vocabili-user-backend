@@ -35,7 +35,15 @@ async def get_user_manager(user_db: SQLAlchemyUserDatabase = Depends(get_user_db
 bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
 
 # 🍪 Cookie 登录（适合前后端一起使用）
-cookie_transport = CookieTransport(cookie_name="auth_cookie", cookie_max_age=3600, cookie_domain=settings.DOMAIN)
+
+is_production = True # settings.APP_ENV = 'production'
+
+cookie_transport = CookieTransport(
+    cookie_name="auth_cookie", 
+    cookie_max_age=3600, 
+    cookie_samesite="None" if is_production else "Lax", 
+    cookie_domain=settings.COOKIE_DOMAIN if is_production else None, 
+    cookie_secure=is_production)
 
 # 🔑 JWT 策略（用于生成 token）
 def get_jwt_strategy() -> JWTStrategy:
