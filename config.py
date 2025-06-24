@@ -9,6 +9,7 @@ class Settings:
     APP_ENV: str = os.getenv("APP_ENV", "development")
     API_HOST: str = os.getenv("API_HOST", "http://localhost:8000")
     PORT: str = os.getenv("PORT", "8000")
+    DOMAIN: str = os.getenv("DOMAIN", "localhost:5173")
     DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
     ROOT: str = os.getenv("ROOT", "")
 

@@ -9,6 +9,7 @@ from fastapi_users.authentication import (
 )
 from fastapi_users.db import SQLAlchemyUserDatabase
 
+from config import settings
 from app.users.db import User, get_user_db  # 你的用户模型和依赖
 from config import SECRET  # 推荐放到 config 文件中管理密钥
 
@@ -34,7 +35,7 @@ async def get_user_manager(user_db: SQLAlchemyUserDatabase = Depends(get_user_db
 bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
 
 # 🍪 Cookie 登录（适合前后端一起使用）
-cookie_transport = CookieTransport(cookie_name="auth_cookie", cookie_max_age=3600)
+cookie_transport = CookieTransport(cookie_name="auth_cookie", cookie_max_age=3600, cookie_domain=settings.DOMAIN)
 
 # 🔑 JWT 策略（用于生成 token）
 def get_jwt_strategy() -> JWTStrategy:
