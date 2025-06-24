@@ -35,3 +35,9 @@ async def list_comments(session: AsyncSession = Depends(get_async_session)):
     result = await session.execute(select(Comment))
     comments = result.scalars().all()
     return [CommentRead.model_validate(comment) for comment in comments]
+
+@router.get("/by_article/{article_id}", response_model=List[CommentRead])
+async def list_comments_by_article(article_id: str, session: AsyncSession = Depends(get_async_session)):
+    result = await session.execute(select(Comment).where(Comment.article_id == article_id))
+    comments = result.scalars().all()
+    return [CommentRead.model_validate(comment) for comment in comments]

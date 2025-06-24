@@ -10,3 +10,4 @@ class CommentRead(BaseModel):
     id: int
     content: str
     user_id: int
+
