@@ -3,11 +3,10 @@ from pydantic import BaseModel
 
 class CommentCreate(BaseModel):
     content: str
+    article_id: str
+    parent_id: int
 
 class CommentRead(BaseModel):
     id: int
     content: str
     user_id: int
-
-    class Config:
-        from_attributes = True

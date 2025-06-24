@@ -8,6 +8,7 @@ from app.db.session import get_async_session
 from app.users.manager import current_active_user
 from .models import Comment
 from .schemas import CommentCreate, CommentRead
+from datetime import datetime, timezone
 
 router = APIRouter(prefix="/comments", tags=["comments"])
 
@@ -17,7 +18,13 @@ async def create_comment(
     user=Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    new_comment = Comment(content=comment.content, user_id=user.id)
+    new_comment = Comment(
+        content=comment.content, 
+        user_id=user.id,
+        created_at=datetime.now(tz=timezone.utc),
+        parent_id=comment.parent_id,
+        article_id=comment.article_id
+        )
     session.add(new_comment)
     await session.commit()
     await session.refresh(new_comment)
