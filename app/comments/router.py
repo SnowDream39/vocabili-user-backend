@@ -1,6 +1,7 @@
 # comments/api.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 from typing import List
 
 from app.db.session import get_async_session
@@ -24,8 +25,6 @@ async def create_comment(
 
 @router.get("/", response_model=List[CommentRead])
 async def list_comments(session: AsyncSession = Depends(get_async_session)):
-    result = await session.execute(
-        Comment.__table__.select()
-    )
+    result = await session.execute(select(Comment))
     comments = result.scalars().all()
-    return comments
+    return [CommentRead.model_validate(comment) for comment in comments]
