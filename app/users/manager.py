@@ -40,14 +40,14 @@ is_production = True # settings.APP_ENV = 'production'
 
 cookie_transport = CookieTransport(
     cookie_name="auth_cookie", 
-    cookie_max_age=3600, 
+    cookie_max_age=36000, 
     cookie_samesite="none" if is_production else "lax", 
     cookie_domain=settings.COOKIE_DOMAIN if is_production else None, 
     cookie_secure=is_production)
 
 # 🔑 JWT 策略（用于生成 token）
 def get_jwt_strategy() -> JWTStrategy:
-    return JWTStrategy(secret=SECRET, lifetime_seconds=3600)
+    return JWTStrategy(secret=SECRET, lifetime_seconds=36000)
 
 # 🧊 创建认证后端：Bearer 和 Cookie 都支持
 # 只需要再提供路径，就可以成为路由。它被路由直接使用。
