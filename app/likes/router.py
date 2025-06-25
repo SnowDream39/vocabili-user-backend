@@ -29,15 +29,15 @@ async def create_like(
     await session.refresh(new_like)
     return new_like
 
-@router.delete("", response_model=LikeRead)
+@router.delete("/{comment_id}", response_model=LikeRead)
 async def delete_like(
-    like: LikeDelete,
+    comment_id: int,
     session: AsyncSession = Depends(get_async_session),
     current_user: User = Depends(current_active_user),
 ):
     like_obj = await session.execute(
         select(Like).where(
-            Like.comment_id == like.comment_id,
+            Like.comment_id == comment_id,
             Like.user_id == current_user.id,
         )
     )
@@ -51,4 +51,3 @@ async def delete_like(
         await session.delete(like_obj)
         await session.commit()
         return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Like deleted"})
-
