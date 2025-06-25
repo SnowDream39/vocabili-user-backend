@@ -23,5 +23,8 @@ class CommentRead(BaseModel):
     class Config:
         from_attributes = True
 
+class CommentDelete(BaseModel):
+    id: int
+
 # 解决 forward reference
 CommentRead.model_rebuild()

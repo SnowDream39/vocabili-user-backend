@@ -8,7 +8,7 @@ from typing import List
 from collections import defaultdict
 
 from app.db.session import get_async_session
-from app.users.manager import current_active_user, current_active_user_optional
+from app.users.manager import current_active_user, current_active_user_optional, current_super_user
 from app.db.models import Comment, User, Like
 from .schemas import CommentCreate, CommentRead
 from datetime import datetime, timezone
@@ -33,23 +33,6 @@ async def create_comment(
     await session.refresh(new_comment)
     return new_comment
 
-@router.get("", response_model=List[CommentRead])
-async def list_comments(session: AsyncSession = Depends(get_async_session)):
-    stmt = select(Comment).options(joinedload(Comment.user)).order_by(desc(Comment.id)).limit(100)
-    result = await session.execute(stmt)
-    comments = result.scalars().all()
-    return [
-        CommentRead(
-            id=c.id,
-            content=c.content,
-            user_id=c.user_id,
-            article_id=c.article_id,
-            parent_id=c.parent_id,
-            created_at=c.created_at,
-            username=c.user.username if c.user else None,
-        )
-        for c in comments
-    ]
 
 @router.get("/by_article/{article_id}", response_model=List[CommentRead])
 async def list_comments_by_article(
@@ -103,3 +86,50 @@ async def list_comments_by_article(
     # 只返回一级评论（parent_id is None）
     root_comments = comment_map[None]
     return [build_comment_tree(c) for c in root_comments]
+
+# 管理员专用
+
+@router.get("/all", response_model=List[CommentRead])
+async def list_comments(
+    page: int = 1,
+    page_size: int = 20,
+    session: AsyncSession = Depends(get_async_session),
+    current_user: User = Depends(current_super_user)
+    ):
+    stmt = (
+        select(Comment)
+        .options(joinedload(Comment.user))
+        .order_by(desc(Comment.id))
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )
+    result = await session.execute(stmt)
+    comments = result.scalars().all()
+    return [
+        CommentRead(
+            id=c.id,
+            content=c.content,
+            user_id=c.user_id,
+            article_id=c.article_id,
+            parent_id=c.parent_id,
+            created_at=c.created_at,
+            username=c.user.username if c.user else None,
+        )
+        for c in comments
+    ]
+
+@router.delete("/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_comment(
+    comment_id: int,
+    session: AsyncSession = Depends(get_async_session),
+    current_user: User = Depends(current_super_user),
+):
+    result = await session.execute(select(Comment).where(Comment.id == comment_id))
+    comment = result.scalars().first()
+    if not comment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Comment not found"
+        )
+    await session.delete(comment)
+    await session.commit()
