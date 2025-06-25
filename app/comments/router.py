@@ -1,6 +1,7 @@
 # comments/api.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 from sqlalchemy.future import select
 from typing import List
 
@@ -37,7 +38,23 @@ async def list_comments(session: AsyncSession = Depends(get_async_session)):
     return [CommentRead.model_validate(comment) for comment in comments]
 
 @router.get("/by_article/{article_id}", response_model=List[CommentRead])
-async def list_comments_by_article(article_id: str, session: AsyncSession = Depends(get_async_session)):
-    result = await session.execute(select(Comment).where(Comment.article_id == article_id))
+async def list_comments_by_article(
+    article_id: str, 
+    session: AsyncSession = Depends(get_async_session)
+):
+    # 👇 加入 joinedload 以便同时加载关联的用户数据
+    stmt = select(Comment).options(joinedload(Comment.user)).where(Comment.article_id == article_id)
+    result = await session.execute(stmt)
     comments = result.scalars().all()
-    return [CommentRead.model_validate(comment) for comment in comments]
+
+    return [
+        CommentRead(
+            id=c.id,
+            content=c.content,
+            user_id=c.user_id,
+            article_id=c.article_id,
+            parent_id=c.parent_id,
+            username=c.user.username  # ⭐ 关联用户的用户名
+        )
+        for c in comments
+    ]

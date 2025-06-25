@@ -12,6 +12,7 @@ class CommentRead(BaseModel):
     user_id: int
     article_id: str
     parent_id: int | None = None
+    username: str  # ⭐ 新增字段：用户名
 
     class Config:
         from_attributes = True
