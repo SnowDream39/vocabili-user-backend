@@ -17,6 +17,7 @@ class Comment(Base):
     content: Mapped[str] = mapped_column(Text, nullable=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"))
     parent_id: Mapped[int] = mapped_column(Integer, ForeignKey('comment.id'), nullable=True)
+    created_at: Mapped[str] = mapped_column(String, nullable=False)
 
     # 关系字段
     user: Mapped["User"] = relationship("User", back_populates="comments")

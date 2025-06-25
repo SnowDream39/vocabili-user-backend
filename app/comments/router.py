@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 from sqlalchemy.future import select
+from sqlalchemy import desc
 from typing import List
 
 from app.db.session import get_async_session
@@ -22,7 +23,7 @@ async def create_comment(
     new_comment = Comment(
         content=comment.content, 
         user_id=user.id,
-        #created_at=datetime.now(tz=timezone.utc),
+        created_at=datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
         parent_id=comment.parent_id,
         article_id=comment.article_id
         )
@@ -33,7 +34,7 @@ async def create_comment(
 
 @router.get("/", response_model=List[CommentRead])
 async def list_comments(session: AsyncSession = Depends(get_async_session)):
-    stmt = select(Comment).options(joinedload(Comment.user))
+    stmt = select(Comment).options(joinedload(Comment.user)).order_by(desc(Comment.id))
     result = await session.execute(stmt)
     comments = result.scalars().all()
     return [
@@ -43,6 +44,7 @@ async def list_comments(session: AsyncSession = Depends(get_async_session)):
             user_id=c.user_id,
             article_id=c.article_id,
             parent_id=c.parent_id,
+            created_at=c.created_at,
             username=c.user.username if c.user else None,
         )
         for c in comments
@@ -53,7 +55,7 @@ async def list_comments_by_article(
     article_id: str,
     session: AsyncSession = Depends(get_async_session)
 ):
-    stmt = select(Comment).options(joinedload(Comment.user)).where(Comment.article_id == article_id)
+    stmt = select(Comment).options(joinedload(Comment.user)).where(Comment.article_id == article_id).order_by(desc(Comment.id))
     result = await session.execute(stmt)
     comments = result.scalars().all()
 
@@ -64,6 +66,7 @@ async def list_comments_by_article(
             user_id=c.user_id,
             article_id=c.article_id,
             parent_id=c.parent_id,
+            created_at=c.created_at,
             username=c.user.username if c.user else None,
         )
         for c in comments

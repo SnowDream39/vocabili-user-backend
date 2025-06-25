@@ -11,6 +11,7 @@ class CommentRead(BaseModel):
     content: str
     user_id: int
     article_id: str
+    created_at: str
     parent_id: int | None = None
     username: str | None = None # ⭐ 新增字段：用户名
 
