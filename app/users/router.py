@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from app.users.db import User
+from app.db.models import User
 from app.users.manager import auth_backend_bearer, auth_backend_cookie, current_active_user, fastapi_users
 from app.users.schemas import UserCreate, UserRead, UserUpdate
 

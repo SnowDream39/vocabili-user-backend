@@ -7,7 +7,7 @@ from typing import List
 
 from app.db.session import get_async_session
 from app.users.manager import current_active_user
-from .models import Comment
+from app.db.models import Comment
 from .schemas import CommentCreate, CommentRead
 from datetime import datetime, timezone
 
