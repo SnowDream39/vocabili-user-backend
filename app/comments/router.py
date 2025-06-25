@@ -61,6 +61,18 @@ async def list_comments_by_article(
     result = await session.execute(stmt)
     comments = result.scalars().all()
 
+    comment_ids = [c.id for c in comments]
+
+    # 查询每条评论的点赞数
+    stmt_like_counts = (
+        select(Like.comment_id, func.count().label("count"))
+        .where(Like.comment_id.in_(comment_ids))
+        .group_by(Like.comment_id)
+    )
+    result_counts = await session.execute(stmt_like_counts)
+    like_counts = {row[0]: row[1] for row in result_counts.all()}
+
+
     liked_comment_ids = set()
     if current_user:
         # 查询当前用户点赞的评论id集合
@@ -83,8 +95,8 @@ async def list_comments_by_article(
             parent_id=comment.parent_id,
             created_at=comment.created_at,
             username=comment.user.username if comment.user else None,
-            like_count=len(liked_comment_ids),
             liked=(comment.id in liked_comment_ids if current_user else False),
+            like_count=like_counts.get(comment.id, 0),
             replies=[build_comment_tree(child) for child in comment_map.get(comment.id, [])]
         )
 
