@@ -16,6 +16,7 @@ class CommentRead(BaseModel):
     created_at: datetime
     parent_id: int | None = None
     username: str | None = None # ⭐ 新增字段：用户名
+    like_count: int = 0
     liked: bool = False 
     replies: List["CommentRead"] = []  # ⬅️ 加上这句
 
