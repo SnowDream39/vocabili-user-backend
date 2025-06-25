@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import Depends, Request
+from fastapi import Depends, Request, HTTPException
 from fastapi_users import BaseUserManager, FastAPIUsers, models, IntegerIDMixin
 from fastapi_users.authentication import (
     AuthenticationBackend,
@@ -73,3 +73,10 @@ fastapi_users = FastAPIUsers[User, int](
 current_active_user = fastapi_users.current_user(active=True)
 current_active_user_optional = fastapi_users.current_user(active=True, optional=True)
 current_super_user = fastapi_users.current_user(superuser=True)
+
+# 自定义验证身份依赖
+
+async def get_premium_user(user: User =Depends(current_active_user)):
+    if not user.is_premium:
+        raise HTTPException(status_code=403, detail="您还不是会员，请联系管理员升级会员")
+    return user
