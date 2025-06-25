@@ -21,8 +21,10 @@ class Comment(Base):
 
     # 关系字段
     user: Mapped["User"] = relationship("User", back_populates="comments")
-    parent: Mapped["Comment"] = relationship("Comment", remote_side=[id], backref="replies")
     likes: Mapped[list["Like"]] = relationship("Like", back_populates="comment")
+
+    parent: Mapped["Comment"] = relationship("Comment", remote_side=[id], backref="replies")
+    replies = relationship("Comment", back_populates="parent", cascade="all, delete")    # 🔁 子评论（也就是回复）
 
 class User(SQLAlchemyBaseUserTable[int], Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

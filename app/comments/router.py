@@ -5,6 +5,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.future import select
 from sqlalchemy import desc
 from typing import List
+from collections import defaultdict
 
 from app.db.session import get_async_session
 from app.users.manager import current_active_user
@@ -67,16 +68,25 @@ async def list_comments_by_article(
         result_likes = await session.execute(stmt_likes)
         liked_comment_ids = set(row[0] for row in result_likes.all())
 
-    return [
-        CommentRead(
-            id=c.id,
-            content=c.content,
-            user_id=c.user_id,
-            article_id=c.article_id,
-            parent_id=c.parent_id,
-            created_at=c.created_at,
-            username=c.user.username if c.user else None,
-            liked=(c.id in liked_comment_ids)  # 标记是否点赞
+    # 根据 parent_id 分类
+    comment_map = defaultdict(list)
+    for comment in comments:
+        comment_map[comment.parent_id].append(comment)
+
+    # 构造树状结构
+    def build_comment_tree(comment: Comment) -> CommentRead:
+        return CommentRead(
+            id=comment.id,
+            content=comment.content,
+            article_id=comment.article_id,
+            user_id=comment.user_id,
+            parent_id=comment.parent_id,
+            created_at=comment.created_at,
+            username=comment.user.username if comment.user else None,
+            liked=(comment.id in liked_comment_ids if current_user else False),
+            replies=[build_comment_tree(child) for child in comment_map.get(comment.id, [])]
         )
-        for c in comments
-    ]
+
+    # 只返回一级评论（parent_id is None）
+    root_comments = comment_map[None]
+    return [build_comment_tree(c) for c in root_comments]
