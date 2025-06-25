@@ -14,6 +14,7 @@ class CommentRead(BaseModel):
     created_at: str
     parent_id: int | None = None
     username: str | None = None # ⭐ 新增字段：用户名
+    liked: bool = False 
 
     class Config:
         from_attributes = True

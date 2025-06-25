@@ -8,7 +8,7 @@ from typing import List
 
 from app.db.session import get_async_session
 from app.users.manager import current_active_user
-from app.db.models import Comment
+from app.db.models import Comment, User, Like
 from .schemas import CommentCreate, CommentRead
 from datetime import datetime, timezone
 
@@ -34,7 +34,7 @@ async def create_comment(
 
 @router.get("/", response_model=List[CommentRead])
 async def list_comments(session: AsyncSession = Depends(get_async_session)):
-    stmt = select(Comment).options(joinedload(Comment.user)).order_by(desc(Comment.id))
+    stmt = select(Comment).options(joinedload(Comment.user)).order_by(desc(Comment.id)).limit(100)
     result = await session.execute(stmt)
     comments = result.scalars().all()
     return [
@@ -53,11 +53,19 @@ async def list_comments(session: AsyncSession = Depends(get_async_session)):
 @router.get("/by_article/{article_id}", response_model=List[CommentRead])
 async def list_comments_by_article(
     article_id: str,
-    session: AsyncSession = Depends(get_async_session)
+    session: AsyncSession = Depends(get_async_session),
+    current_user: User | None = Depends(current_active_user),  # 获取当前登录用户
 ):
     stmt = select(Comment).options(joinedload(Comment.user)).where(Comment.article_id == article_id).order_by(desc(Comment.id))
     result = await session.execute(stmt)
     comments = result.scalars().all()
+
+    liked_comment_ids = set()
+    if current_user:
+        # 查询当前用户点赞的评论id集合
+        stmt_likes = select(Like.comment_id).where(Like.user_id == current_user.id, Like.comment_id.in_([c.id for c in comments]))
+        result_likes = await session.execute(stmt_likes)
+        liked_comment_ids = set(row[0] for row in result_likes.all())
 
     return [
         CommentRead(
@@ -68,6 +76,7 @@ async def list_comments_by_article(
             parent_id=c.parent_id,
             created_at=c.created_at,
             username=c.user.username if c.user else None,
+            liked=(c.id in liked_comment_ids)  # 标记是否点赞
         )
         for c in comments
     ]
