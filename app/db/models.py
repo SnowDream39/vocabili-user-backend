@@ -1,11 +1,14 @@
-from app.db.base import Base
-
-
 from sqlalchemy import ForeignKey, String, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from fastapi_users.db import SQLAlchemyBaseUserTable
-from app.db.base import Base
-#from app.users.models import User  # 导入用户模型
+
+from sqlalchemy.orm import DeclarativeBase
+from app.db.session import engine
+
+
+class Base(DeclarativeBase):
+    pass
+
 
 class Comment(Base):
     __tablename__ = "comment"

@@ -39,10 +39,9 @@ async def list_comments(session: AsyncSession = Depends(get_async_session)):
 
 @router.get("/by_article/{article_id}", response_model=List[CommentRead])
 async def list_comments_by_article(
-    article_id: str, 
+    article_id: str,
     session: AsyncSession = Depends(get_async_session)
 ):
-    # 👇 加入 joinedload 以便同时加载关联的用户数据
     stmt = select(Comment).options(joinedload(Comment.user)).where(Comment.article_id == article_id)
     result = await session.execute(stmt)
     comments = result.scalars().all()
@@ -54,7 +53,7 @@ async def list_comments_by_article(
             user_id=c.user_id,
             article_id=c.article_id,
             parent_id=c.parent_id,
-            username=c.user.username  # ⭐ 关联用户的用户名
+            username=c.user.username if c.user else None,
         )
         for c in comments
     ]
