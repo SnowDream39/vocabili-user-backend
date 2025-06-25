@@ -22,7 +22,7 @@ async def create_like(
     new_like = Like(
         comment_id=like.comment_id,
         user_id=current_user.id,
-        created_at=datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+        created_at=datetime.now(tz=timezone.utc),
     )
     session.add(new_like)
     await session.commit()

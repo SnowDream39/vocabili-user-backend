@@ -1,9 +1,10 @@
-from sqlalchemy import ForeignKey, String, Integer, Text
+from sqlalchemy import ForeignKey, String, Integer, Text, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from fastapi_users.db import SQLAlchemyBaseUserTable
 
 from sqlalchemy.orm import DeclarativeBase
 from app.db.session import engine
+from datetime import datetime
 
 
 class Base(DeclarativeBase):
@@ -17,7 +18,7 @@ class Comment(Base):
     content: Mapped[str] = mapped_column(Text, nullable=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"))
     parent_id: Mapped[int] = mapped_column(Integer, ForeignKey('comment.id'), nullable=True)
-    created_at: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
     # 关系字段
     user: Mapped["User"] = relationship("User", back_populates="comments")
@@ -35,11 +36,11 @@ class User(SQLAlchemyBaseUserTable[int], Base):
 from sqlalchemy import UniqueConstraint
 
 class Like(Base):
-    __tablename__ = 'like'
+    __tablename__ = 'comment_like'
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    comment_id: Mapped[int] = mapped_column(Integer, ForeignKey('comments.id'), nullable=False)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'), nullable=False)
-    created_at: Mapped[int] = mapped_column(String, nullable=False)
+    comment_id: Mapped[int] = mapped_column(Integer, ForeignKey('comment.id'), nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey('user.id'), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
     user: Mapped["User"] = relationship("User", back_populates="likes")
     comment: Mapped["Comment"] = relationship("Comment", back_populates="likes")

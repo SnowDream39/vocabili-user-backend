@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from app.users.router import router as users_router
 from app.comments.router import router as comments_router  # 未来模块
+from app.likes.router import router as likes_router
 
 from config import settings
 
@@ -20,4 +21,5 @@ app.add_middleware(
 
 # 挂载子路由
 app.include_router(users_router)
-app.include_router(comments_router)  # 未来加进来
+app.include_router(comments_router)
+app.include_router(likes_router)
