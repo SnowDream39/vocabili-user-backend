@@ -1,7 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query
+
 from app.db.models import User
-from app.users.manager import auth_backend_bearer, auth_backend_cookie, current_active_user, fastapi_users
+from app.users.manager import auth_backend_bearer, auth_backend_cookie, current_active_user, fastapi_users, current_super_user
 from app.users.schemas import UserCreate, UserRead, UserUpdate
+
+
+
 
 router = APIRouter()
 
@@ -9,6 +13,7 @@ router = APIRouter()
 
 
 # 登录，利用 backend
+
 
 router.include_router(
     fastapi_users.get_auth_router(auth_backend_bearer), prefix="/auth/jwt", tags=["auth"]
@@ -43,5 +48,4 @@ router.include_router(
 @router.get("/authenticated-route")
 async def authenticated_route(user: User = Depends(current_active_user)):
     return {"message": f"Hello {user.email}!"}
-
 

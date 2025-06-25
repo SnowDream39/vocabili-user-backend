@@ -37,6 +37,9 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="user")
     likes: Mapped[list["Like"]] = relationship("Like", back_populates="user")
 
+    class Config:
+        from_attributes = True
+
 from sqlalchemy import UniqueConstraint
 
 class Like(Base):
