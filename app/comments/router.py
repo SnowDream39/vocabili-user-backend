@@ -24,7 +24,7 @@ async def create_comment(
     new_comment = Comment(
         content=comment.content, 
         user_id=user.id,
-        created_at=datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+        created_at=datetime.now(tz=timezone.utc),
         parent_id=comment.parent_id,
         article_id=comment.article_id
         )
