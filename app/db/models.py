@@ -16,16 +16,16 @@ class Comment(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     article_id: Mapped[str] = mapped_column(String, index=True, server_default="")
     content: Mapped[str] = mapped_column(Text, nullable=False)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"))
-    parent_id: Mapped[int] = mapped_column(Integer, ForeignKey('comment.id'), nullable=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"))
+    parent_id: Mapped[int] = mapped_column(Integer, ForeignKey('comment.id', ondelete="CASCADE"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
     # 关系字段
     user: Mapped["User"] = relationship("User", back_populates="comments")
-    likes: Mapped[list["Like"]] = relationship("Like", back_populates="comment")
+    likes: Mapped[list["Like"]] = relationship("Like", back_populates="comment", cascade="all, delete-orphan")
     
     parent = relationship("Comment", remote_side=[id], back_populates="children")
-    children = relationship("Comment", back_populates="parent", cascade="all, delete")
+    children = relationship("Comment", back_populates="parent", cascade="all, delete-orphan")
 
 class User(SQLAlchemyBaseUserTable[int], Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -34,8 +34,8 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     premium_end_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
     # 建立双向关系：一个用户对应多个评论
-    comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="user")
-    likes: Mapped[list["Like"]] = relationship("Like", back_populates="user")
+    comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="user", cascade="all, delete-orphan")
+    likes: Mapped[list["Like"]] = relationship("Like", back_populates="user", cascade="all, delete-orphan")
 
     class Config:
         from_attributes = True
@@ -45,8 +45,8 @@ from sqlalchemy import UniqueConstraint
 class Like(Base):
     __tablename__ = 'comment_like'
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    comment_id: Mapped[int] = mapped_column(Integer, ForeignKey('comment.id'), nullable=False)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey('user.id'), nullable=False)
+    comment_id: Mapped[int] = mapped_column(Integer, ForeignKey('comment.id', ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey('user.id', ondelete="CASCADE"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
     user: Mapped["User"] = relationship("User", back_populates="likes")

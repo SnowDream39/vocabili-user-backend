@@ -8,6 +8,16 @@ DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
 engine = create_async_engine(DATABASE_URL)
 
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
+
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    # ✅ 启用 SQLite 外键支持
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
+
 # 会话工厂，帮你生成“数据库会话”对象，用于操作表数据。
 # 📌 你可以从它生成 AsyncSession 来进行增删改查。
 
