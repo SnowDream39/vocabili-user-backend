@@ -8,14 +8,14 @@ from typing import List
 from collections import defaultdict
 
 from app.db.session import get_async_session
-from app.users.manager import current_active_user
+from app.users.manager import current_active_user, current_active_user_optional
 from app.db.models import Comment, User, Like
 from .schemas import CommentCreate, CommentRead
 from datetime import datetime, timezone
 
 router = APIRouter(prefix="/comments", tags=["comments"])
 
-@router.post("/", response_model=CommentRead)
+@router.post("", response_model=CommentRead)
 async def create_comment(
     comment: CommentCreate,
     user=Depends(current_active_user),
@@ -33,7 +33,7 @@ async def create_comment(
     await session.refresh(new_comment)
     return new_comment
 
-@router.get("/", response_model=List[CommentRead])
+@router.get("", response_model=List[CommentRead])
 async def list_comments(session: AsyncSession = Depends(get_async_session)):
     stmt = select(Comment).options(joinedload(Comment.user)).order_by(desc(Comment.id)).limit(100)
     result = await session.execute(stmt)
@@ -55,7 +55,7 @@ async def list_comments(session: AsyncSession = Depends(get_async_session)):
 async def list_comments_by_article(
     article_id: str,
     session: AsyncSession = Depends(get_async_session),
-    current_user: User | None = Depends(current_active_user),  # 获取当前登录用户
+    current_user: User | None = Depends(current_active_user_optional),  # 获取当前登录用户
 ):
     stmt = select(Comment).options(joinedload(Comment.user)).where(Comment.article_id == article_id).order_by(desc(Comment.id))
     result = await session.execute(stmt)
