@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 from sqlalchemy.future import select
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 from typing import List
 from collections import defaultdict
 
