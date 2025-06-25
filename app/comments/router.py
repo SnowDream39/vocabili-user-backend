@@ -83,6 +83,7 @@ async def list_comments_by_article(
             parent_id=comment.parent_id,
             created_at=comment.created_at,
             username=comment.user.username if comment.user else None,
+            like_count=len(liked_comment_ids),
             liked=(comment.id in liked_comment_ids if current_user else False),
             replies=[build_comment_tree(child) for child in comment_map.get(comment.id, [])]
         )
